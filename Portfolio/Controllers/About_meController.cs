@@ -135,9 +135,42 @@ namespace Portfolio.Controllers
 			}
 		}
 		[HttpPost("insertexperience")]
-		public async Task<IActionResult> insert_experience()
+		public async Task<IActionResult> insert_experience(List<ExperienceMst> experienceMsts)
 		{
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				await _context.ExperienceMsts.AddRangeAsync(experienceMsts);
+				await _context.SaveChangesAsync();
 
+				List<string> newexperienceIds = experienceMsts.Select(x => x.Id.ToString()).ToList();
+
+				var aboutMe = await _context.AboutMes.FirstOrDefaultAsync();
+
+				if (aboutMe == null)
+				{
+					return NotFound(new { message = "About_me record not found" });
+				}
+
+				List<string> existingexperienceIds = (aboutMe.Experienceids ?? "")
+												.Split(',', StringSplitOptions.RemoveEmptyEntries)
+												.ToList();
+
+				existingexperienceIds.AddRange(newexperienceIds);
+
+				aboutMe.Experienceids = string.Join(",", existingexperienceIds.Distinct());
+
+				_context.AboutMes.Update(aboutMe);
+				await _context.SaveChangesAsync();
+
+				await transaction.CommitAsync();
+
+				return Ok(new { message = "Experiences and reference saved successfully" });
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { message = "Something went wrong" });
+			}
 		}
 		
 	}
