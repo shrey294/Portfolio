@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Portfolio.Models;
 
-[Keyless]
 [Table("Education_mst")]
 public partial class EducationMst
 {
+    [Key]
     [Column("ID")]
-    public int? Id { get; set; }
+    public int Id { get; set; }
 
     [StringLength(100)]
     public string? Qualification { get; set; }
