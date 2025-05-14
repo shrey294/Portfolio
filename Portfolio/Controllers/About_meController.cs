@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using CloudinaryDotNet.Actions;
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Context;
 using Portfolio.Models;
+using Portfolio.Models.DTO;
 
 namespace Portfolio.Controllers
 {
@@ -13,26 +15,86 @@ namespace Portfolio.Controllers
 	public class About_meController : ControllerBase
 	{
 		private readonly AppDbContext _context;
+		private readonly Cloudinary _cloudinary;
 
-		public About_meController(AppDbContext appDbContext)
+		public About_meController(AppDbContext appDbContext, Cloudinary cloudinary)
 		{
 			_context = appDbContext;
+			_cloudinary = cloudinary;
 		}
-
-		[HttpPost("Addintro")]
-		public async Task<IActionResult> Insert_intro([FromBody] AboutMe aboutMe)
+		[HttpGet("Getbasicintro")]
+		public async Task<IActionResult> getintro1()
 		{
 			try
 			{
-				await _context.AboutMes.AddAsync(aboutMe);
+				var result = await _context.AboutMes
+									.Select(a => new
+									{
+										a.Id,
+										a.Description,
+										a.Experience,
+										a.Imageurl
+									}).FirstOrDefaultAsync();
+
+				return Ok(result);
+
+			}
+			catch (Exception)
+			{
+				return BadRequest(new { message = "Something went wrong" });
+			}
+		}
+		//[HttpPost("Addintro")]
+		//public async Task<IActionResult> Insert_intro([FromBody] AboutMe aboutMe)
+		//{
+		//	try
+		//	{
+		//		await _context.AboutMes.AddAsync(aboutMe);
+		//		await _context.SaveChangesAsync();
+		//		return Ok(new {message= "Description added Successfully" });
+		//	}
+		//	catch (Exception)
+		//	{
+		//		return BadRequest("Something went wrong");
+		//	}
+		//}
+		[HttpPost("Addintro")]
+		public async Task<IActionResult> Insert_intro([FromForm] AboutMe aboutMe, IFormFile imageFile)
+		{
+			try
+			{
+				string imageUrl = null;
+
+				if (imageFile != null && imageFile.Length > 0)
+				{
+					var uploadParams = new ImageUploadParams
+					{
+						File = new FileDescription(imageFile.FileName, imageFile.OpenReadStream()),
+						Folder = "portfolio"
+					};
+
+					var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+					imageUrl = uploadResult.SecureUrl.ToString();
+				}
+
+				var aboutme = new AboutMe
+				{
+					Description = aboutMe.Description,
+					Experience = aboutMe.Experience,
+					Imageurl = imageUrl
+				};
+
+				await _context.AboutMes.AddAsync(aboutme);
 				await _context.SaveChangesAsync();
-				return Ok(new {message= "Description added Successfully" });
+
+				return Ok(new { message = "Description added Successfully" });
 			}
 			catch (Exception ex)
 			{
-				return BadRequest("Something went wrong");
+				return BadRequest("Something went wrong: " + ex.Message);
 			}
 		}
+
 		[HttpPut("updateintro/{id}")]
 		public async Task<IActionResult> update_intro(int id, AboutMe aboutMe)
 		{
@@ -52,12 +114,24 @@ namespace Portfolio.Controllers
 					return Ok(new { message = "Record Update Successfully" });
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				return BadRequest(new { message = "Something Went Wrong" });
 			}
 		}
-
+		[HttpGet("getskills")]
+		public async Task<IActionResult> get_skills()
+		{
+			try
+			{
+				var result = await _context.SkillMsts.ToListAsync();
+				return Ok(result);
+			}
+			catch (Exception)
+			{
+				return BadRequest(new { message = "something went wrong" });
+			}
+		}
 		[HttpPost("addskills")]
 		public async Task<IActionResult> InsertSkills(List<SkillMst> skillMsts)
 		{
@@ -97,7 +171,7 @@ namespace Portfolio.Controllers
 
 				return Ok(new { message = "Skills and reference saved successfully" });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				await transaction.RollbackAsync();
 				return BadRequest(new { message = "Something went wrong"});
@@ -128,12 +202,26 @@ namespace Portfolio.Controllers
 
 				return Ok(new { message = "Skills updated successfully" });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				await transaction.RollbackAsync();
-				return BadRequest(new { message = "Something went wrong", error = ex.Message });
+				return BadRequest(new { message = "Something went wrong"});
 			}
 		}
+		[HttpGet("getexperience")]
+		public async Task<IActionResult> get_experience()
+		{
+			try
+			{
+				var result = await _context.ExperienceMsts.ToListAsync();
+				return Ok(result);
+			}
+			catch (Exception) 
+			{
+				return BadRequest(new { message = "Aomething went wrong" });
+			}
+		}
+
 		[HttpPost("insertexperience")]
 		public async Task<IActionResult> insert_experience(List<ExperienceMst> experienceMsts)
 		{
@@ -167,7 +255,7 @@ namespace Portfolio.Controllers
 
 				return Ok(new { message = "Experiences and reference saved successfully" });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				await transaction.RollbackAsync();
 				return BadRequest(new { message = "Something went wrong" });
@@ -194,9 +282,23 @@ namespace Portfolio.Controllers
 				await transaction.CommitAsync();
 				return Ok(new {message="experience updated successfully"});
 			}
-			catch (Exception ex) 
+			catch (Exception) 
 			{
 				await transaction.RollbackAsync();
+				return BadRequest(new { message = "Something went wrong" });
+			}
+		}
+
+		[HttpGet("geteducation")]
+		public async Task<IActionResult> get_education()
+		{
+			try
+			{
+				var result = await _context.EducationMsts.ToListAsync();
+				return Ok(result);
+			}
+			catch (Exception) 
+			{
 				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
@@ -234,7 +336,7 @@ namespace Portfolio.Controllers
 
 				return Ok(new { message = "Education and reference saved successfully" });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				await transaction.RollbackAsync();
 				return BadRequest(new { message = "Something went wrong" });
@@ -266,11 +368,12 @@ namespace Portfolio.Controllers
 
 				return Ok(new { message = "Skills updated successfully" });
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				await transaction.RollbackAsync();
-				return BadRequest(new { message = "Something went wrong", error = ex.Message });
+				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
+		
 	}
 }

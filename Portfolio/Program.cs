@@ -1,7 +1,10 @@
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Portfolio.Context;
+using Portfolio.Models.DTO;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +20,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddSingleton(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var cloudinarySettings = config.GetSection("CloudinarySettings").Get<CloudinarySettings>();
+
+    var account = new Account(
+        cloudinarySettings.CloudName,
+        cloudinarySettings.ApiKey,
+        cloudinarySettings.ApiSecret
+        );
+    return new Cloudinary(account);
+});
 
 // configuration of jwt token.
 builder.Services.AddAuthentication(x =>

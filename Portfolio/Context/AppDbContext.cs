@@ -24,6 +24,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<HeaderInformation> HeaderInformations { get; set; }
 
+    public virtual DbSet<MySkill> MySkills { get; set; }
+
     public virtual DbSet<SkillMst> SkillMsts { get; set; }
 
     public virtual DbSet<UserMst> UserMsts { get; set; }
