@@ -23,7 +23,7 @@ namespace Portfolio.Controllers
 			_cloudinary = cloudinary;
 		}
 		[HttpGet("Getbasicintro")]
-		public async Task<IActionResult> getintro1()
+		public async Task<IActionResult> getintro()
 		{
 			try
 			{
@@ -44,25 +44,14 @@ namespace Portfolio.Controllers
 				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
-		//[HttpPost("Addintro")]
-		//public async Task<IActionResult> Insert_intro([FromBody] AboutMe aboutMe)
-		//{
-		//	try
-		//	{
-		//		await _context.AboutMes.AddAsync(aboutMe);
-		//		await _context.SaveChangesAsync();
-		//		return Ok(new {message= "Description added Successfully" });
-		//	}
-		//	catch (Exception)
-		//	{
-		//		return BadRequest("Something went wrong");
-		//	}
-		//}
+
+		
 		[HttpPost("Addintro")]
-		public async Task<IActionResult> Insert_intro([FromForm] AboutMe aboutMe, IFormFile imageFile)
+		public async Task<IActionResult> Insert_intro([FromForm] IFormCollection formData)
 		{
 			try
 			{
+				var imageFile = formData.Files["imageFile"];
 				string imageUrl = null;
 
 				if (imageFile != null && imageFile.Length > 0)
@@ -79,8 +68,8 @@ namespace Portfolio.Controllers
 
 				var aboutme = new AboutMe
 				{
-					Description = aboutMe.Description,
-					Experience = aboutMe.Experience,
+					Description = formData["Description"],
+					Experience = double.Parse(formData["Experience"]),
 					Imageurl = imageUrl
 				};
 

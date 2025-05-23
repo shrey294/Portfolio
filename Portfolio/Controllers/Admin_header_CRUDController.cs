@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Context;
 using Portfolio.Models;
+using Portfolio.Models.DTO;
 
 namespace Portfolio.Controllers
 {
@@ -19,13 +20,22 @@ namespace Portfolio.Controllers
 			_context = appDbContext;
 		}
 		[HttpPost("Insert")]
-		public async Task<IActionResult> Header_Insert(HeaderInformation headerInformation)
+		public async Task<IActionResult> Header_Insert(HeaderDto headerInformation)
 		{
 			try
 			{
-				await _context.HeaderInformations.AddAsync(headerInformation);
+				var headerentity = new HeaderInformation
+				{
+					Name = headerInformation.Name,
+					Initials = headerInformation.Initials,
+					Designation = headerInformation.Designation,
+					ShortDescription = headerInformation.ShortDescription,
+					Icons = headerInformation.Icons,
+				};
+				await _context.HeaderInformations.AddAsync(headerentity);
 				await _context.SaveChangesAsync();
-				return Ok(new {message="Header Information saved successfully"});
+				return Ok(new { message = "Header Information saved successfully" });
+
 			}
 			catch(Exception)
 			{
@@ -37,7 +47,7 @@ namespace Portfolio.Controllers
 		{
 			try
 			{
-				var information = await _context.HeaderInformations.Where(x=>x.IsDelete=="N").ToListAsync();
+				var information = await _context.HeaderInformations.ToListAsync();
 				return Ok(information);
 			}
 			catch (Exception) 
@@ -46,7 +56,7 @@ namespace Portfolio.Controllers
 			}
 		}
 		[HttpPut("update/{id}")]
-		public async Task<IActionResult> UpdateHeader(int id,HeaderInformation headerInformation)
+		public async Task<IActionResult> UpdateHeader(int id, [FromBody] HeaderDto headerInformation)
 		{
 			try
 			{
