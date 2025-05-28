@@ -85,29 +85,52 @@ namespace Portfolio.Controllers
 		}
 
 		[HttpPut("updateintro/{id}")]
-		public async Task<IActionResult> update_intro(int id, AboutMe aboutMe)
+		public async Task<IActionResult> UpdateIntro(int id, [FromForm] AboutMeUpdateDto dto)
 		{
 			try
 			{
-				var descriptiontoupdate = await _context.AboutMes.FindAsync(id);
-				if (descriptiontoupdate == null)
+				var existingRecord = await _context.AboutMes.FindAsync(id);
+				if (existingRecord == null)
 				{
-					return BadRequest(new { message = "Record Not Found" });
+					return NotFound(new { message = "Record Not Found" });
 				}
-				else
+
+				// Update text fields
+				existingRecord.Description = dto.Description;
+				existingRecord.Experience = dto.Experience;
+
+				if (dto.ImageFile != null && dto.ImageFile.Length > 0)
 				{
-					descriptiontoupdate.Description = aboutMe.Description;
-					descriptiontoupdate.Imageurl = aboutMe.Imageurl;
-					descriptiontoupdate.Experience = aboutMe.Experience;
-					await _context.SaveChangesAsync();
-					return Ok(new { message = "Record Update Successfully" });
+					// Delete old image
+					if (!string.IsNullOrEmpty(existingRecord.Imageurl))
+					{
+						var uri = new Uri(existingRecord.Imageurl);
+						var publicId = System.IO.Path.GetFileNameWithoutExtension(uri.LocalPath);
+						var deletionParams = new DeletionParams("portfolio/" + publicId);
+						await _cloudinary.DestroyAsync(deletionParams);
+					}
+
+					// Upload new image
+					var uploadParams = new ImageUploadParams
+					{
+						File = new FileDescription(dto.ImageFile.FileName, dto.ImageFile.OpenReadStream()),
+						Folder = "portfolio"
+					};
+
+					var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+					existingRecord.Imageurl = uploadResult.SecureUrl.ToString();
 				}
+
+				await _context.SaveChangesAsync();
+				return Ok(new { message = "Record Updated Successfully" });
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
-				return BadRequest(new { message = "Something Went Wrong" });
+				return BadRequest(new { message = "Something Went Wrong", error = ex.Message });
 			}
 		}
+
+
 		[HttpGet("getskills")]
 		public async Task<IActionResult> get_skills()
 		{

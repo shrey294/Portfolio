@@ -1,11 +1,10 @@
 ﻿namespace Portfolio.Models.DTO
 {
-	public class About_meDTO
+	public class AboutMeUpdateDto
 	{
-		public string? Description { get; set; }
-		public int? Experience { get; set; }
-		public string? Imageurl { get; set; }
-		public string? SkillName { get; set; }
-		public int? SkillPercantage { get; set; }
+		public string Description { get; set; }
+		public double Experience { get; set; }
+		public IFormFile ImageFile { get; set; }
 	}
+
 }
