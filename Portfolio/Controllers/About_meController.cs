@@ -235,64 +235,30 @@ namespace Portfolio.Controllers
 		}
 
 		[HttpPost("insertexperience")]
-		public async Task<IActionResult> insert_experience(List<ExperienceMst> experienceMsts)
+		public async Task<IActionResult> InsertExperience([FromBody] ExperienceMst experienceMst)
 		{
 			using var transaction = await _context.Database.BeginTransactionAsync();
 			try
 			{
-				await _context.ExperienceMsts.AddRangeAsync(experienceMsts);
+				await _context.ExperienceMsts.AddAsync(experienceMst);
 				await _context.SaveChangesAsync();
 
-				List<string> newexperienceIds = experienceMsts.Select(x => x.Id.ToString()).ToList();
+				string newExperienceId = experienceMst.Id.ToString();
+				var aboutme = await _context.AboutMes.FirstOrDefaultAsync();
 
-				var aboutMe = await _context.AboutMes.FirstOrDefaultAsync();
-
-				if (aboutMe == null)
+				if(aboutme == null)
 				{
 					return NotFound(new { message = "About_me record not found" });
 				}
+				List<string> existingExperienceIds = (aboutme.Experienceids ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
-				List<string> existingexperienceIds = (aboutMe.Experienceids ?? "")
-												.Split(',', StringSplitOptions.RemoveEmptyEntries)
-												.ToList();
-
-				existingexperienceIds.AddRange(newexperienceIds);
-
-				aboutMe.Experienceids = string.Join(",", existingexperienceIds.Distinct());
-
-				_context.AboutMes.Update(aboutMe);
-				await _context.SaveChangesAsync();
-
-				await transaction.CommitAsync();
-
-				return Ok(new { message = "Experiences and reference saved successfully" });
-			}
-			catch (Exception)
-			{
-				await transaction.RollbackAsync();
-				return BadRequest(new { message = "Something went wrong" });
-			}
-		}
-		[HttpPut("updatedexperience")]
-		public async Task<IActionResult> update_experience(List<ExperienceMst> experienceMstsupdated)
-		{
-			using var transaction = await _context.Database.BeginTransactionAsync();
-			try
-			{
-				foreach (var updatedexperience in experienceMstsupdated) 
-				{
-					var existingexperience = await _context.ExperienceMsts.FindAsync(updatedexperience.Id);
-					if (existingexperience == null) 
-					{
-						return NotFound(new { message = $"Experience with ID {updatedexperience.Id} not found" });
-					}
-					existingexperience.Title = updatedexperience.Title;
-					existingexperience.Description = updatedexperience.Description;
-					existingexperience.CompanyName = updatedexperience.CompanyName;
-				}
+				existingExperienceIds.Add(newExperienceId);
+				aboutme.Experienceids = string.Join(",", existingExperienceIds.Distinct());
+				_context.AboutMes.Update(aboutme);
 				await _context.SaveChangesAsync();
 				await transaction.CommitAsync();
-				return Ok(new {message="experience updated successfully"});
+				return Ok(new { message = "Experience and reference saved successfully" });
+
 			}
 			catch (Exception) 
 			{
@@ -300,6 +266,62 @@ namespace Portfolio.Controllers
 				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
+		//[HttpPut("updatedexperience")]
+		//public async Task<IActionResult> update_experience(List<ExperienceMst> experienceMstsupdated)
+		//{
+		//	using var transaction = await _context.Database.BeginTransactionAsync();
+		//	try
+		//	{
+		//		foreach (var updatedexperience in experienceMstsupdated) 
+		//		{
+		//			var existingexperience = await _context.ExperienceMsts.FindAsync(updatedexperience.Id);
+		//			if (existingexperience == null) 
+		//			{
+		//				return NotFound(new { message = $"Experience with ID {updatedexperience.Id} not found" });
+		//			}
+		//			existingexperience.Title = updatedexperience.Title;
+		//			existingexperience.Description = updatedexperience.Description;
+		//			existingexperience.CompanyName = updatedexperience.CompanyName;
+		//		}
+		//		await _context.SaveChangesAsync();
+		//		await transaction.CommitAsync();
+		//		return Ok(new {message="experience updated successfully"});
+		//	}
+		//	catch (Exception) 
+		//	{
+		//		await transaction.RollbackAsync();
+		//		return BadRequest(new { message = "Something went wrong" });
+		//	}
+		//}
+		[HttpPut("updateexperience")]
+		public async Task<IActionResult> UpdateExperience(ExperienceMst updatedExperience)
+		{
+			using var transaction = await _context.Database.BeginTransactionAsync();
+			try
+			{
+				var existingExperience = await _context.ExperienceMsts.FindAsync(updatedExperience.Id);
+				if (existingExperience == null)
+				{
+					return NotFound(new { message = $"Experience not found" });
+				}
+
+				existingExperience.Title = updatedExperience.Title;
+				existingExperience.Description = updatedExperience.Description;
+				existingExperience.CompanyName = updatedExperience.CompanyName;
+				existingExperience.Duration = updatedExperience.Duration;
+
+				await _context.SaveChangesAsync();
+				await transaction.CommitAsync();
+
+				return Ok(new { message = "Experience updated successfully" });
+			}
+			catch (Exception)
+			{
+				await transaction.RollbackAsync();
+				return BadRequest(new { message = "Something went wrong" });
+			}
+		}
+
 
 		[HttpGet("geteducation")]
 		public async Task<IActionResult> get_education()

@@ -21,6 +21,10 @@ public partial class ExperienceMst
     [StringLength(150)]
     public string? CompanyName { get; set; }
 
+    [Column("duration")]
+    [StringLength(50)]
+    public string? Duration { get; set; }
+
     [Column("description")]
     [StringLength(500)]
     [Unicode(false)]
