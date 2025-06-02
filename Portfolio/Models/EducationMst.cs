@@ -16,6 +16,9 @@ public partial class EducationMst
     [StringLength(100)]
     public string? Qualification { get; set; }
 
+    [StringLength(50)]
+    public string? Duration { get; set; }
+
     [Column("college_name")]
     [StringLength(150)]
     public string? CollegeName { get; set; }

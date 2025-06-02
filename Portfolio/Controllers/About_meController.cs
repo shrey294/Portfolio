@@ -266,33 +266,6 @@ namespace Portfolio.Controllers
 				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
-		//[HttpPut("updatedexperience")]
-		//public async Task<IActionResult> update_experience(List<ExperienceMst> experienceMstsupdated)
-		//{
-		//	using var transaction = await _context.Database.BeginTransactionAsync();
-		//	try
-		//	{
-		//		foreach (var updatedexperience in experienceMstsupdated) 
-		//		{
-		//			var existingexperience = await _context.ExperienceMsts.FindAsync(updatedexperience.Id);
-		//			if (existingexperience == null) 
-		//			{
-		//				return NotFound(new { message = $"Experience with ID {updatedexperience.Id} not found" });
-		//			}
-		//			existingexperience.Title = updatedexperience.Title;
-		//			existingexperience.Description = updatedexperience.Description;
-		//			existingexperience.CompanyName = updatedexperience.CompanyName;
-		//		}
-		//		await _context.SaveChangesAsync();
-		//		await transaction.CommitAsync();
-		//		return Ok(new {message="experience updated successfully"});
-		//	}
-		//	catch (Exception) 
-		//	{
-		//		await transaction.RollbackAsync();
-		//		return BadRequest(new { message = "Something went wrong" });
-		//	}
-		//}
 		[HttpPut("updateexperience")]
 		public async Task<IActionResult> UpdateExperience(ExperienceMst updatedExperience)
 		{
@@ -337,17 +310,60 @@ namespace Portfolio.Controllers
 			}
 		}
 
+		//[HttpPost("inserteducation")]
+		//public async Task<IActionResult> insert_education(List<EducationMst> educationMsts)
+		//{
+		//	using var transaction = await _context.Database.BeginTransactionAsync();
+		//	try
+		//	{
+		//		await _context.EducationMsts.AddRangeAsync(educationMsts);
+		//		await _context.SaveChangesAsync();
+
+		//		List<string> neweducationIds = educationMsts.Select(x => x.Id.ToString()).ToList();
+
+		//		var aboutMe = await _context.AboutMes.FirstOrDefaultAsync();
+
+		//		if (aboutMe == null)
+		//		{
+		//			return NotFound(new { message = "About_me record not found" });
+		//		}
+
+		//		List<string> existingeducationIds = (aboutMe.Educationids ?? "")
+		//										.Split(',', StringSplitOptions.RemoveEmptyEntries)
+		//										.ToList();
+
+		//		existingeducationIds.AddRange(neweducationIds);
+
+		//		aboutMe.Educationids = string.Join(",", existingeducationIds.Distinct());
+
+		//		_context.AboutMes.Update(aboutMe);
+		//		await _context.SaveChangesAsync();
+
+		//		await transaction.CommitAsync();
+
+		//		return Ok(new { message = "Education and reference saved successfully" });
+		//	}
+		//	catch (Exception)
+		//	{
+		//		await transaction.RollbackAsync();
+		//		return BadRequest(new { message = "Something went wrong" });
+		//	}
+		//}
+
 		[HttpPost("inserteducation")]
-		public async Task<IActionResult> insert_education(List<EducationMst> educationMsts)
+		public async Task<IActionResult> InsertEducation([FromBody] EducationMst educationMst)
 		{
 			using var transaction = await _context.Database.BeginTransactionAsync();
 			try
 			{
-				await _context.EducationMsts.AddRangeAsync(educationMsts);
+				// Add the single EducationMst object
+				await _context.EducationMsts.AddAsync(educationMst);
 				await _context.SaveChangesAsync();
 
-				List<string> neweducationIds = educationMsts.Select(x => x.Id.ToString()).ToList();
+				string newEducationId = educationMst.Id.ToString();
 
+
+				// Fetch AboutMe record
 				var aboutMe = await _context.AboutMes.FirstOrDefaultAsync();
 
 				if (aboutMe == null)
@@ -355,13 +371,14 @@ namespace Portfolio.Controllers
 					return NotFound(new { message = "About_me record not found" });
 				}
 
-				List<string> existingeducationIds = (aboutMe.Educationids ?? "")
-												.Split(',', StringSplitOptions.RemoveEmptyEntries)
-												.ToList();
+				// Get existing IDs and add the new one
+				List<string> existingEducationIds = (aboutMe.Educationids ?? "")
+					.Split(',', StringSplitOptions.RemoveEmptyEntries)
+					.ToList();
 
-				existingeducationIds.AddRange(neweducationIds);
+				existingEducationIds.Add(newEducationId);
 
-				aboutMe.Educationids = string.Join(",", existingeducationIds.Distinct());
+				aboutMe.Educationids = string.Join(",", existingEducationIds.Distinct());
 
 				_context.AboutMes.Update(aboutMe);
 				await _context.SaveChangesAsync();
@@ -377,30 +394,61 @@ namespace Portfolio.Controllers
 			}
 		}
 
+
+		//[HttpPut("updateeducation")]
+		//public async Task<IActionResult> Update_education(List<EducationMst> updatededucations)
+		//{
+		//	using var transaction = await _context.Database.BeginTransactionAsync();
+
+		//	try
+		//	{
+		//		foreach (var updatededucation in updatededucations)
+		//		{
+		//			var existingeducation = await _context.EducationMsts.FindAsync(updatededucation.Id);
+		//			if (existingeducation == null)
+		//			{
+		//				return NotFound(new { message = $"Skill with ID {updatededucation.Id} not found" });
+		//			}
+
+		//			existingeducation.Qualification = updatededucation.Qualification;
+		//			existingeducation.CollegeName = updatededucation.CollegeName;
+		//			existingeducation.Description = updatededucation.Description;
+		//		}
+
+		//		await _context.SaveChangesAsync();
+		//		await transaction.CommitAsync();
+
+		//		return Ok(new { message = "Skills updated successfully" });
+		//	}
+		//	catch (Exception)
+		//	{
+		//		await transaction.RollbackAsync();
+		//		return BadRequest(new { message = "Something went wrong" });
+		//	}
+		//}
 		[HttpPut("updateeducation")]
-		public async Task<IActionResult> Update_education(List<EducationMst> updatededucations)
+		public async Task<IActionResult> UpdateEducation([FromBody] EducationMst updatedEducation)
 		{
 			using var transaction = await _context.Database.BeginTransactionAsync();
 
 			try
 			{
-				foreach (var updatededucation in updatededucations)
+				var existingEducation = await _context.EducationMsts.FindAsync(updatedEducation.Id);
+				if (existingEducation == null)
 				{
-					var existingeducation = await _context.EducationMsts.FindAsync(updatededucation.Id);
-					if (existingeducation == null)
-					{
-						return NotFound(new { message = $"Skill with ID {updatededucation.Id} not found" });
-					}
-
-					existingeducation.Qualification = updatededucation.Qualification;
-					existingeducation.CollegeName = updatededucation.CollegeName;
-					existingeducation.Description = updatededucation.Description;
+					return NotFound(new { message = $"Education with ID {updatedEducation.Id} not found" });
 				}
+
+				// Update properties
+				existingEducation.Qualification = updatedEducation.Qualification;
+				existingEducation.CollegeName = updatedEducation.CollegeName;
+				existingEducation.Description = updatedEducation.Description;
+				existingEducation.Duration = updatedEducation.Duration;
 
 				await _context.SaveChangesAsync();
 				await transaction.CommitAsync();
 
-				return Ok(new { message = "Skills updated successfully" });
+				return Ok(new { message = "Education updated successfully" });
 			}
 			catch (Exception)
 			{
@@ -408,6 +456,8 @@ namespace Portfolio.Controllers
 				return BadRequest(new { message = "Something went wrong" });
 			}
 		}
-		
+
+
+
 	}
 }
