@@ -25,20 +25,21 @@ namespace Portfolio.Controllers
 			{
 				var result = await _context.MySkills.ToListAsync();
 				return Ok(result);
-			}
+			} 
 			catch (Exception) 
 			{
 				return BadRequest(new {message="Something went wrong"});
 			}
 		}
 		[HttpPost("Insertskills")]
-		public async Task<IActionResult> add_skills(List<MySkill> mySkills)
+		public async Task<IActionResult> add_skills(MySkill mySkill)
 		{
 			try
 			{
-				await _context.MySkills.AddRangeAsync(mySkills);
+				
+				await _context.MySkills.AddAsync(mySkill);
 				await _context.SaveChangesAsync();
-				return Ok(new {message="Skills Inserted Successfully"});
+				return Ok(new {message="Skill Inserted Successfully"});
 			}
 			catch (Exception)
 			{
