@@ -116,26 +116,57 @@ namespace Portfolio.Controllers
 				return BadRequest(new {message="Something Went Wrong"});
 			}
 		}
+		//[HttpDelete("deleteproject/{id}")]
+		//public async Task<IActionResult> delete_project(int id)
+		//{
+		//	try
+		//	{
+		//		var recordtodelte = await _context.Projects.FindAsync(id);
+		//		if (recordtodelte != null)
+		//		{
+		//			_context.Projects.Remove(recordtodelte);
+		//			await _context.SaveChangesAsync();
+		//			return Ok(new {message="Record Deleted Successfully"});
+		//		}
+		//		else
+		//		{
+		//			return NotFound(new { message = "Record Not Found" });
+		//		}
+		//	}
+		//	catch (Exception) 
+		//	{
+		//		return BadRequest(new {message="Something Went Wrong"});
+		//	}
+		//}
 		[HttpDelete("deleteproject/{id}")]
 		public async Task<IActionResult> delete_project(int id)
 		{
 			try
 			{
-				var recordtodelte = await _context.Projects.FindAsync(id);
-				if (recordtodelte != null)
+				var recordToDelete = await _context.Projects.FindAsync(id);
+				if (recordToDelete != null)
 				{
-					_context.Projects.Remove(recordtodelte);
+					// Delete image from Cloudinary if it exists
+					if (!string.IsNullOrEmpty(recordToDelete.Imageurl))
+					{
+						var uri = new Uri(recordToDelete.Imageurl);
+						var publicId = System.IO.Path.GetFileNameWithoutExtension(uri.LocalPath);
+						var deletionParams = new DeletionParams("Projects/" + publicId);
+						await _cloudinary.DestroyAsync(deletionParams);
+					}
+
+					_context.Projects.Remove(recordToDelete);
 					await _context.SaveChangesAsync();
-					return Ok(new {message="Record Deleted Successfully"});
+					return Ok(new { message = "Record Deleted Successfully" });
 				}
 				else
 				{
 					return NotFound(new { message = "Record Not Found" });
 				}
 			}
-			catch (Exception) 
+			catch (Exception)
 			{
-				return BadRequest(new {message="Something Went Wrong"});
+				return BadRequest(new { message = "Something Went Wrong" });
 			}
 		}
 	}
