@@ -23,4 +23,13 @@ public partial class ContactDetail
 
     [StringLength(50)]
     public string? Phone { get; set; }
+
+    [Column("Github_url")]
+    public string? GithubUrl { get; set; }
+
+    [Column("Intsa_url")]
+    public string? IntsaUrl { get; set; }
+
+    [Column("LinkedIn_url")]
+    public string? LinkedInUrl { get; set; }
 }

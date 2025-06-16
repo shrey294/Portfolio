@@ -56,6 +56,9 @@ namespace Portfolio.Controllers
 					recordtouopdate.Location = contactDetail.Location;
 					recordtouopdate.Email = contactDetail.Email;
 					recordtouopdate.Phone = contactDetail.Phone;
+					recordtouopdate.GithubUrl = contactDetail.GithubUrl;
+					recordtouopdate.IntsaUrl = contactDetail.IntsaUrl;
+					recordtouopdate.LinkedInUrl = contactDetail.LinkedInUrl;
 					await _context.SaveChangesAsync();
 					return Ok(new {Message="Record Upddated Successfully"});
 				}
