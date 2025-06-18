@@ -47,7 +47,7 @@ namespace Portfolio.Controllers
 					var newAccessToken = User.Token;
 					var newrefreshtoken = CreateRereshToken();
 					User.RefreshToken = newrefreshtoken;
-					User.Expirytime = DateTime.Now.AddDays(5);
+					User.Expirytime = DateTime.UtcNow.AddDays(1);
 					await _context.SaveChangesAsync();
 					return Ok(new TokenApiDto()
 					{
@@ -76,7 +76,7 @@ namespace Portfolio.Controllers
 			var tokenDescriptor = new SecurityTokenDescriptor
 			{
 				Subject = identity,
-				Expires = DateTime.Now.AddHours(1),
+				Expires = DateTime.UtcNow.AddHours(1),
 				SigningCredentials = Credentials,
 			};
 			var token = jwtTokenHandler.CreateToken(tokenDescriptor);
