@@ -22,6 +22,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<EducationMst> EducationMsts { get; set; }
 
+    public virtual DbSet<Enquiry> Enquiries { get; set; }
+
     public virtual DbSet<ExperienceMst> ExperienceMsts { get; set; }
 
     public virtual DbSet<HeaderInformation> HeaderInformations { get; set; }
@@ -35,9 +37,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<UserMst> UserMsts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
-    }
+    { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

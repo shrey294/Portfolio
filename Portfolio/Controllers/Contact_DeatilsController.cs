@@ -32,7 +32,7 @@ namespace Portfolio.Controllers
 			}
 		}
 		[HttpPost("AddContact")]
-		public async Task<IActionResult> Add_Contact_details(ContactDetail contactDetail)
+		public async Task<IActionResult> Add_Contact_details([FromBody] ContactDetail contactDetail)
 		{
 			try
 			{
