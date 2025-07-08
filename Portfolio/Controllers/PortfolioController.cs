@@ -36,7 +36,7 @@ namespace Portfolio.Controllers
 				return BadRequest(new { message = ex.Message });
 			}
 		}
-		[HttpGet("getskills")]
+		[HttpGet("getskillsp")]
 		public async Task<IActionResult> get_skills()
 		{
 			try
